@@ -15,7 +15,7 @@ void readFilePhoneNumber(const std::filesystem::path& path) {
         return;
     }
 
-    std::regex pat(R"(\+[ -]?\d{1,3}[ -]?(?:\(\d{2,3}\)|\d{2,3})[ -]?\d{3}[ -]?\d{2,3}[ -]?\d{2,3})");
+    std::regex pat(R"(\+?[ -.]?[(]?\d{1,4}[)]?[ -.]?(?:\(\d{1,4}\)|\d{1,4})[ -.]?\d{2,4}[ -.]?\d{2,4}[ -.]?\d{2,4}\b)");
 
     size_t lineCounter = 0;
     for (std::string line; std::getline(in,line); ) {
