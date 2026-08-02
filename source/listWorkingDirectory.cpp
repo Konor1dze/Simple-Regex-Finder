@@ -7,6 +7,7 @@
 #include <format>
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 #include "../headers/readFile.h"
 
@@ -21,6 +22,11 @@ void list_working_directory(const std::filesystem::path &path) {
     std::vector<std::filesystem::path> textFiles;
     std::filesystem::directory_iterator it(path, ec);
 
+    const std::unordered_set<std::string> target_extensions = {
+        ".txt", ".cpp", ".h", ".log", ".json", ".csv", ".html"
+    };
+
+
     if (ec) {
         std::cerr << std::format("Failed to read directory: {}\n", ec.message());
         return;
@@ -29,7 +35,7 @@ void list_working_directory(const std::filesystem::path &path) {
     std::cout << path.string() << ":\n";
 
     for (const std::filesystem::directory_entry& x: it) {
-        if (x.is_regular_file() && x.path().extension() == ".txt") {
+        if (x.is_regular_file() && target_extensions.contains(x.path().extension().string())) {
             textFiles.push_back(x.path());
         }
     }
