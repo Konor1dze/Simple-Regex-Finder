@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <mutex>
 #include <regex>
 #include <thread>
 #include <syncstream>
