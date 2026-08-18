@@ -58,7 +58,7 @@ void list_working_directory(const std::filesystem::path &path) {
         const std::filesystem::path& selectedFile = textFiles[numToFind - 1];
 
         size_t modeNum = 0;
-        std::cout << "[0]: Phone Number Regex\n[1]: Email Regex\n[2]: User Regex\n";
+        std::cout << "[0]: Phone Number Regex\n[1]: Email Regex\n[2]: Date Regex\n[3]: User Regex\n";
         std::cout << "Enter a mode that you want to use: ";
         if (!(std::cin >> modeNum)) {
             std::cerr << "Invalid mode entered!\n";
@@ -68,7 +68,8 @@ void list_working_directory(const std::filesystem::path &path) {
         switch (modeNum) {
             case 0: std::jthread(readFilePhoneNumber, selectedFile); break;
             case 1: std::jthread(readFileEmail, selectedFile); break;
-            case 2: std::jthread(readFileUserRegex, selectedFile); break;
+            case 2: std::jthread(readFilePhoneNumber, selectedFile); break;
+            case 3: std::jthread(readFileUserRegex, selectedFile); break;
             default: std::cerr << "Uknown mode selected!\n"; break;
         }
 
