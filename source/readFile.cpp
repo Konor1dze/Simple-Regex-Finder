@@ -3,6 +3,7 @@
 //
 
 #include "../headers/readFile.h"
+#include "../headers/countLinesInBlock.h"
 
 #include <algorithm>
 #include <iostream>
@@ -11,9 +12,9 @@
 #include <thread>
 #include <syncstream>
 
-void readFile(const std::filesystem::path& path, const std::regex& pat, std::streampos startPos, std::streampos endPos, std::size_t startLine) {
+bool readFile(const std::filesystem::path& path, const std::regex& pat, std::streampos startPos, std::streampos endPos, std::size_t startLine) {
     std::ifstream in(path, std::ios::in | std::ios::binary);
-    if (!in) return;
+    if (!in) return false;
 
     in.seekg(startPos);
 
@@ -38,86 +39,46 @@ void readFile(const std::filesystem::path& path, const std::regex& pat, std::str
             }
         }
     }
+    return true;
 }
 
-size_t countLinesInBlock(const std::filesystem::path& path, std::streampos startPos, std::streampos endPos) {
-    std::ifstream fin(path, std::ios::in | std::ios::binary);
-    if (!fin) return 0;
+bool readFileForRegex(const std::filesystem::path& path, const std::regex& userPat) {
+    std::ifstream in(path, std::ios::in | std::ios::binary);
 
-    fin.seekg(startPos);
-    std::string line;
-    std::size_t lineCounter = 0;
-
-    if (startPos != std::streampos{0}) std::getline(fin, line);
-    while (fin.tellg() != std::streampos(-1) && fin.tellg() <= endPos && std::getline(fin, line)) {
-        ++lineCounter;
+    if (!in) {
+        std::cerr << "File is not opened!" << "\n";
+        return false;
     }
-    return lineCounter;
+
+    in.seekg(0, std::ios::end);
+    std::streampos fileSize = in.tellg();
+    std::streampos midPos = fileSize / 2;
+    in.close();
+
+    static const std::regex pat = userPat;
+    size_t firstBlockLines = countLinesInBlock(path, 0, midPos);
+
+    std::jthread jt1([&]() {
+        readFile(path, pat, 0, midPos, 0);
+    });
+
+    std::jthread jt2([&]() {
+        readFile(path, pat, midPos, fileSize, firstBlockLines);
+    });
+    return true;
 }
 
 void readFilePhoneNumber(const std::filesystem::path& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-
-    if (!in) {
-        std::cerr << "File is not opened!" << "\n";
-        return;
-    }
-
-    in.seekg(0, std::ios::end);
-    std::streampos fileSize = in.tellg();
-    std::streampos midPos = fileSize / 2;
-    in.close();
-
-    size_t firstBlockLines = countLinesInBlock(path, 0, midPos);
-    std::regex pat(R"(\+?[ -.]?[(]?\d{1,4}[)]?[ -.]?(?:\(\d{1,4}\)|\d{1,4})[ -.]?\d{2,4}[ -.]?\d{2,4}[ -.]?\d{2,4}\b)");
-
-    std::jthread jt1([&]() {
-        readFile(path, pat, 0, midPos, 0);
-    });
-
-    std::jthread jt2([&]() {
-        readFile(path, pat, midPos, fileSize, firstBlockLines);
-    });
+    static const std::regex pat(R"(\+?[ -.]?[(]?\d{1,4}[)]?[ -.]?(?:\(\d{1,4}\)|\d{1,4})[ -.]?\d{2,4}[ -.]?\d{2,4}[ -.]?\d{2,4}\b)");
+    readFileForRegex(path, pat);
 }
 
 void readFileEmail(const std::filesystem::path& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-
-    if (!in) {
-        std::cerr << "File is not opened!" << "\n";
-        return;
-    }
-
-    in.seekg(0, std::ios::end);
-    std::streampos fileSize = in.tellg();
-    std::streampos midPos = fileSize / 2;
-    in.close();
-
-    std::size_t firstBlockLines = countLinesInBlock(path, 0, midPos);
-    std::regex pat(R"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})");
-
-    std::jthread jt1([&]() {
-        readFile(path, pat, 0, midPos, 0);
-    });
-
-    std::jthread jt2([&]() {
-        readFile(path, pat, midPos, fileSize, firstBlockLines);
-    });
+    static const std::regex pat(R"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})");
+    readFileForRegex(path, pat);
 }
 
 void readFileUserRegex(const std::filesystem::path& path) {
-    std::ifstream in(path, std::ios::in | std::ios::binary);
-
-    if (!in) {
-        std::cerr << "File is not opened!" << "\n";
-        return;
-    }
-
-    in.seekg(0, std::ios::end);
-    std::streampos fileSize = in.tellg();
-    std::streampos midPos = fileSize / 2;
-    in.close();
-
     std::string regex_str;
 
     std::cout << "Enter your regex (for example, [a-z]+): ";
@@ -132,38 +93,10 @@ void readFileUserRegex(const std::filesystem::path& path) {
         std::cout << "Error code: " << err.code() << "\n";
         return;
     }
-    std::size_t firstBlockSize = countLinesInBlock(path, 0, midPos);
-
-    std::jthread jt1([&]() {
-        readFile(path, user_regex, 0, midPos, 0);
-    });
-
-    std::jthread jt2([&]() {
-        readFile(path, user_regex, midPos, fileSize, firstBlockSize);
-    });
+    readFileForRegex(path, user_regex);
 }
 
 void readFileDate(const std::filesystem::path& path) {
-    std::ifstream fin(path, std::ios::in | std::ios::binary);
-
-    if (!fin) {
-        std::cerr << "File is not opened!" << "\n";
-        return;
-    }
-
-    fin.seekg(0, std::ios::end);
-    std::streampos fileSize = fin.tellg();
-    std::streampos midPos = fileSize / 2;
-    fin.close();
-
-    std::regex pat(R"(\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b)");
-    std::size_t firstBlockSize = countLinesInBlock(path, 0, midPos);
-
-    std::jthread t1([&]() {
-        readFile(path, pat, 0, midPos, 0);
-    });
-
-    std::jthread t2([&]() {
-        readFile(path, pat, midPos, fileSize, firstBlockSize);
-    });
+    const std::regex pat(R"(\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b)");
+    readFileForRegex(path, pat);
 }

@@ -68,7 +68,7 @@ void list_working_directory(const std::filesystem::path &path) {
         switch (modeNum) {
             case 0: std::jthread(readFilePhoneNumber, selectedFile); break;
             case 1: std::jthread(readFileEmail, selectedFile); break;
-            case 2: std::jthread(readFilePhoneNumber, selectedFile); break;
+            case 2: std::jthread(readFileDate, selectedFile); break;
             case 3: std::jthread(readFileUserRegex, selectedFile); break;
             default: std::cerr << "Uknown mode selected!\n"; break;
         }

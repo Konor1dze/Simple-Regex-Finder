@@ -10,7 +10,6 @@ int main() {
     std::string pathName;
     std::cout << "Enter a directory: ";
 
-
     std::cin >> pathName;
 
     std::filesystem::path path(pathName);

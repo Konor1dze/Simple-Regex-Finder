@@ -8,4 +8,6 @@ add_executable(SimpleRegexFinder main.cpp
         source/readFile.cpp
         source/listWorkingDirectory.cpp
         headers/listWorkingDirectory.h
+        source/countLinesInBlock.cpp
+        headers/countLinesInBlock.h
 )
