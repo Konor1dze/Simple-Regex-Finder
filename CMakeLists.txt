@@ -10,4 +10,5 @@ add_executable(SimpleRegexFinder main.cpp
         headers/listWorkingDirectory.h
         source/countLinesInBlock.cpp
         headers/countLinesInBlock.h
+        "headers/startFunc.h"
 )

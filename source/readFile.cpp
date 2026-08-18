@@ -12,6 +12,8 @@
 #include <thread>
 #include <syncstream>
 
+#include "../headers/startFunc.h"
+
 bool readFile(const std::filesystem::path& path, const std::regex& pat, std::streampos startPos, std::streampos endPos, std::size_t startLine) {
     std::ifstream in(path, std::ios::in | std::ios::binary);
     if (!in) return false;
@@ -55,7 +57,9 @@ bool readFileForRegex(const std::filesystem::path& path, const std::regex& userP
     std::streampos midPos = fileSize / 2;
     in.close();
 
-    static const std::regex pat = userPat;
+    static std::regex pat;
+    pat.assign(userPat);
+
     size_t firstBlockLines = countLinesInBlock(path, 0, midPos);
 
     std::jthread jt1([&]() {
@@ -65,17 +69,20 @@ bool readFileForRegex(const std::filesystem::path& path, const std::regex& userP
     std::jthread jt2([&]() {
         readFile(path, pat, midPos, fileSize, firstBlockLines);
     });
+
     return true;
 }
 
 void readFilePhoneNumber(const std::filesystem::path& path) {
-    static const std::regex pat(R"(\+?[ -.]?[(]?\d{1,4}[)]?[ -.]?(?:\(\d{1,4}\)|\d{1,4})[ -.]?\d{2,4}[ -.]?\d{2,4}[ -.]?\d{2,4}\b)");
+    static std::regex pat(R"(\+?[ -]?[(]?\d{1,4}[)]?[ -]?(?:\(\d{1,4}\)|\d{1,4})[ -]?\d{2,4}[ -]?\d{2,4}[ -]?\d{2,4}\b)");
     readFileForRegex(path, pat);
+    continueFunc();
 }
 
 void readFileEmail(const std::filesystem::path& path) {
-    static const std::regex pat(R"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})");
+    static std::regex pat(R"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})");
     readFileForRegex(path, pat);
+    continueFunc();
 }
 
 void readFileUserRegex(const std::filesystem::path& path) {
@@ -94,9 +101,11 @@ void readFileUserRegex(const std::filesystem::path& path) {
         return;
     }
     readFileForRegex(path, user_regex);
+    continueFunc();
 }
 
 void readFileDate(const std::filesystem::path& path) {
-    const std::regex pat(R"(\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b)");
+    std::regex pat(R"(\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b)");
     readFileForRegex(path, pat);
+    continueFunc();
 }
