@@ -5,7 +5,6 @@
 #ifndef LEARNINGCPP_LISTWORKINGDIRECTORY_H
 #define LEARNINGCPP_LISTWORKINGDIRECTORY_H
 #include <filesystem>
-#include <fstream>
 
 void list_working_directory(const std::filesystem::path& path);
 

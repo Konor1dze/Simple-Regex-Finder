@@ -7,6 +7,7 @@
 #include <format>
 #include <vector>
 #include <iostream>
+#include <thread>
 #include <unordered_set>
 
 #include "../headers/readFile.h"
@@ -65,9 +66,9 @@ void list_working_directory(const std::filesystem::path &path) {
         }
 
         switch (modeNum) {
-            case 0: readFilePhoneNumber(selectedFile); break;
-            case 1: readFileEmail(selectedFile); break;
-            case 2: readFileUserRegex(selectedFile); break;
+            case 0: std::jthread(readFilePhoneNumber, selectedFile); break;
+            case 1: std::jthread(readFileEmail, selectedFile); break;
+            case 2: std::jthread(readFileUserRegex, selectedFile); break;
             default: std::cerr << "Uknown mode selected!\n"; break;
         }
 
