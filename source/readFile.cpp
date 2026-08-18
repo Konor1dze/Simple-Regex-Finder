@@ -10,8 +10,7 @@
 #include <mutex>
 #include <regex>
 #include <thread>
-
-std::mutex coutMutex;
+#include <syncstream>
 
 void readFile(const std::filesystem::path& path, const std::regex& pat, std::streampos startPos, std::streampos endPos, std::size_t startLine) {
     std::ifstream in(path, std::ios::in | std::ios::binary);
@@ -29,9 +28,15 @@ void readFile(const std::filesystem::path& path, const std::regex& pat, std::str
     while (in.tellg() != std::streampos(-1) && in.tellg() <= endPos && std::getline(in, line)) {
         ++localLineCounter;
 
-        for (std::sregex_iterator p(line.begin(), line.end(), pat); p != std::sregex_iterator{}; ++p) {
-            std::lock_guard<std::mutex> lock_guard(coutMutex);
-            std::cout << localLineCounter << ": " << (*p)[0] << "\n";
+        std::sregex_iterator p(line.begin(), line.end(), pat);
+        std::sregex_iterator end;
+
+        if (p != end) {
+            std::osyncstream oss(std::cout);
+
+            for (; p != end; ++p) {
+                oss << "Line " << localLineCounter << ": " << (*p)[0] << "\n";
+            }
         }
     }
 }
